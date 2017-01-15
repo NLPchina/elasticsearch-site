@@ -3,7 +3,7 @@
  Returns the right Result Handler depend
  on the results */
 var ResultHandlerFactory = {
-    "create": function(data,isFlat,showScore,showType,showId) {
+    "create": function(data,isFlat,showScore,showType) {
         function isSearch(){
             return "hits" in data
         }
@@ -17,7 +17,7 @@ var ResultHandlerFactory = {
 
         if(isSearch()){
             return isAggregation() ? new AggregationQueryResultHandler(data) : 
-            new DefaultQueryResultHandler(data,isFlat,showScore,showType,showId)
+            new DefaultQueryResultHandler(data,isFlat,showScore,showType)
         }
 
         if(isDelete()){
@@ -36,7 +36,7 @@ var ResultHandlerFactory = {
  in case of regular query
  (Not aggregation)
  */
-var DefaultQueryResultHandler = function(data,isFlat,showScore,showType,showId) {
+var DefaultQueryResultHandler = function(data,isFlat,showScore,showType) {
 
     // createScheme by traverse hits field
     function createScheme() {
@@ -44,7 +44,7 @@ var DefaultQueryResultHandler = function(data,isFlat,showScore,showType,showId) 
         scheme = []
         for(index=0; index<hits.length; index++) {
             hit = hits[index]
-            header = $.extend({},hit.source,hit.fields)
+            header = $.extend({},hit._source,hit.fields)
             if(isFlat){
                 findKeysRecursive(scheme,header,"");
             }
@@ -65,9 +65,6 @@ var DefaultQueryResultHandler = function(data,isFlat,showScore,showType,showId) 
         if(showScore){
             scheme.push("_score");
         }
-        if(showScore){
-            scheme.push("_id");
-        }
         return scheme
     }
     
@@ -77,7 +74,6 @@ var DefaultQueryResultHandler = function(data,isFlat,showScore,showType,showId) 
     this.isFlat = isFlat;
     this.showScore = showScore;
     this.showType = showType;
-    this.showId = showId;
     this.scrollId = data["_scroll_id"];
     this.isScroll = this.scrollId!=undefined && this.scrollId!="";
 };
@@ -99,7 +95,7 @@ DefaultQueryResultHandler.prototype.getBody = function() {
     var hits = this.data.hits.hits
     var body = []
     for(var i = 0; i < hits.length; i++) {
-        var row = hits[i].source;
+        var row = hits[i]._source;
         if("fields" in hits[i]){
             addFieldsToRow(row,hits[i])
         }
@@ -107,13 +103,10 @@ DefaultQueryResultHandler.prototype.getBody = function() {
             row = flatRow(this.head,row);
         }
         if(this.showType){
-            row["_type"] = hits[i].type
+            row["_type"] = hits[i]._type
         }
         if(this.showScore){
-            row["_score"] = hits[i].score
-        }
-        if(this.showId){
-            row["_id"] = hits[i].id
+            row["_score"] = hits[i]._score
         }
         body.push(row)
     }
@@ -121,7 +114,7 @@ DefaultQueryResultHandler.prototype.getBody = function() {
 };
 
 DefaultQueryResultHandler.prototype.getTotal = function() {
-    return this.data.hits.totalHits;
+    return this.data.hits.total;
 };
 
 DefaultQueryResultHandler.prototype.getCurrentHitsSize = function() {

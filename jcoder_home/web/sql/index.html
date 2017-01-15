@@ -27,10 +27,23 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
+
+            <li ng-cloak>
+              <a>{{version ? 'Version: ' + version : ''}}</a>
+            </li>
+
+            <li>
+              <form class="navbar-form">
+                <input type="text" id="urlBox" class="form-control" ng-model="url" />
+              </form>
+            </li>
+
             <li id="help_btn" data-toggle="modal" data-target="#help_popup">
               <a title="Help" href="#" data-placement="bottom">Help</a>
             </li>
+
           </ul>
+
         </div>
       </div>
     </nav>
@@ -108,9 +121,6 @@
           </div>
           <div class="checkbox">
             <label><input type="checkbox" ng-model="config.useOldTable" ng-change="onChangeTablePresnterType()" value="">Old Table</label>
-          </div>
-          <div class="checkbox">
-            <label><input type="checkbox" ng-model="config.showId" ng-change="onChangeTablePresnterType()" value="">Show Id</label>
           </div>
           <div class="checkbox">
             <label><input type="checkbox" ng-model="config.showScore" ng-change="onChangeTablePresnterType()" value="">Show Score</label>
