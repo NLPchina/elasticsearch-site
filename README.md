@@ -9,7 +9,7 @@ The project is a elasticsearch plugin collection, You can use it in green, not n
 - ##### Getting Started
 
   * first you need jdk8 , Suggested install it on elasticsearch machine
-  * clone https://github.com/NLPchina/elasticsearch-site.git
+  * git clone https://github.com/NLPchina/elasticsearch-site.git
   * run it `./run.sh start` 
   * visit 'http://localhost:8080/apidoc' for restful api
 
