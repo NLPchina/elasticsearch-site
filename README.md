@@ -8,12 +8,17 @@ The project is a elasticsearch plugin collection, You can use it in green, not n
 
 - ##### Getting Started
 
-  * first you need jdk8(must) and maven(not must)
+  * first you need jdk8 , Suggested install it on elasticsearch machine
   * clone https://github.com/NLPchina/elasticsearch-site.git
   * run it `./run.sh start` 
   * visit 'http://localhost:8080/apidoc' for restful api
 
-	
+
+- ##### About config
+  * setting elasticsearch ip and port
+  	.......
+  * setting jcoder config
+  	........
 
 - ##### Plugins
   * es-sql http://localhost:8080/web/sql/
