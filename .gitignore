@@ -49,9 +49,9 @@ train_file/*
 .checkstyle
 .pmd
 
-/jcoder/resource
-/jcoder/tmp
-/jcoder/upload
-/jcoder/backup
-/jcoder/h2db
-/jcoder/lib
+/jcoder_home/tmp
+/jcoder_home/backup
+log/
+jcoder.pid
+nohup.log
+/jcoder_home/tmp/
