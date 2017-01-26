@@ -42,7 +42,7 @@ jrat.xml
 ._*
 target/
 train_file/*
-/target/
+/src/target/
 
 .checkstyle
 .pmd

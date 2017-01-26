@@ -16,21 +16,26 @@ The project is a elasticsearch plugin collection, You can use it in green, not n
 
 - ##### About config
   * setting elasticsearch ip and port
-  	.......
-  * setting jcoder config
-  	........
+	open 'elasticsearch-site/jcoder_home/resource/ioc.js'
+
 
 - ##### Plugins
   * es-sql http://localhost:8080/web/sql/
+  * head http://localhost:8080/web/head/
 
+  ````
+# if you want use head , you must take this setting to your elasticsearch.yml 
+http.cors.enabled : true
+http.cors.allow-origin : "*"
+http.cors.allow-methods : OPTIONS, HEAD, GET, POST, PUT, DELETE
+http.cors.allow-headers : X-Requested-With,X-Auth-Token,Content-Type, Content-Length
+  ````
   
-- ##### ElasticSearch-sql
-	[ElasticSearch-sql](https://github.com/NLPchina/elasticsearch-sql) use es by sql. 
-	
+- ##### Thanks
+	[ElasticSearch-sql](https://github.com/NLPchina/elasticsearch-sql) 
+	[ElasticSearch-head](https://github.com/mobz/elasticsearch-head) 
 
 	
-- ##### road map
-  * add elastich-head
   
 
 

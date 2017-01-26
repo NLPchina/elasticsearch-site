@@ -1,0 +1,1 @@
+java -jar jcoder-2.1.6.war -f=config.properties

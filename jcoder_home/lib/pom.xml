@@ -10,7 +10,7 @@
         <repository>
             <id>mvn-aliyun</id>
             <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-        </repository>
+        </repository> 
     </repositories>
 
     <properties>
