@@ -1,5 +1,4 @@
 ven build output.
-target/
 
 # Generated for Eclipse.
 .settings/
@@ -40,7 +39,6 @@ jrat.output/*
 jrat.xml
 ._.DS_Store
 ._*
-target/
 train_file/*
 /src/target/
 
