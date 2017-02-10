@@ -694,6 +694,8 @@
 
 	var coretype_map = {
 		"string" : "string",
+		"keyword" : "string",
+		"text" : "string",
 		"byte" : "number",
 		"short" : "number",
 		"long" : "number",
@@ -826,9 +828,39 @@
 		},
 		init: function() {
 			this._super();
+			var _cluster = this.config.cluster;
 			this.config.cluster.get("_cluster/state", function(data) {
 				this.metaData = new app.data.MetaData({state: data});
-				this.fire("ready", this.metaData,  { originalData: data }); // TODO originalData needed for legacy ui.FilterBrowser
+				this.fire("ready", this.metaData,  { originalData: data, "k": 1 }); // TODO originalData needed for legacy ui.FilterBrowser
+			}.bind(this), function() {
+				
+				var _this = this;
+				
+				_cluster.get("_all", function( data ) {
+					clusterState = {routing_table:{indices:{}}, metadata:{indices:{}}};
+					
+					for(var k in data) {
+						clusterState["routing_table"]["indices"][k] = {"shards":{"1":[{
+                            "state":"UNASSIGNED",
+                            "primary":false,
+                            "node":"unknown",
+                            "relocating_node":null,
+                            "shard":'?',
+                            "index":k
+                        }]}};
+						
+
+						clusterState["metadata"]["indices"][k] = {};
+						clusterState["metadata"]["indices"][k]["mappings"] = data[k]["mappings"];
+						clusterState["metadata"]["indices"][k]["aliases"] = $.makeArray(Object.keys(data[k]["aliases"]));
+						clusterState["metadata"]["indices"][k]["settings"] = data[k]["settings"];
+						clusterState["metadata"]["indices"][k]["fields"] = {};
+					}
+					
+					_this.metaData = new app.data.MetaData({state: clusterState});
+					_this.fire("ready", _this.metaData, {originalData: clusterState});
+				});				
+
 			}.bind(this));
 		}
 	});
@@ -853,7 +885,6 @@
 			this.indices = [];
 			this.types = [];
 			this.search = {
-				fields : [ "_parent", "_source" ],
 				query: { bool: { must: [], must_not: [], should: [] } },
 				from: 0,
 				size: this.config.size,
@@ -961,7 +992,7 @@
 			this.search.from = this.config.size * (page - 1);
 		},
 		setSort: function(index, desc) {
-			var sortd = {}; sortd[index] = { reverse: !!desc };
+			var sortd = {}; sortd[index] = { order: desc ? 'asc' : 'desc' };
 			this.search.sort.unshift( sortd );
 			for(var i = 1; i < this.search.sort.length; i++) {
 				if(Object.keys(this.search.sort[i])[0] === index) {
@@ -1057,9 +1088,9 @@
 		_results_handler: function(query, res) {
 			this._getSummary(res);
 			this._getMeta(res);
-			var sort = query.search.sort[0] || { "_score": { reverse: false }};
+			var sort = query.search.sort[0] || { "_score": { order: "asc" }};
 			var sortField = Object.keys(sort)[0];
-			this.sort = { column: sortField, dir: (sort[sortField].reverse ? "asc" : "desc") };
+			this.sort = { column: sortField, dir: sort[sortField].order };
 			this._getData(res, this.config.metadata);
 			this.fire("data", this);
 		},
@@ -1279,10 +1310,10 @@
 				}
 			},  params) );
 		},
-		"get": function(path, success) { return this.request( { type: "GET", path: path, success: success } ); },
-		"post": function(path, data, success) { return this.request( { type: "POST", path: path, data: data, success: success } ); },
-		"put": function(path, data, success) { return this.request( { type: "PUT", path: path, data: data, success: success } ); },
-		"delete": function(path, data, success) { return this.request( { type: "DELETE", path: path, data: data, success: success } ); }
+		"get": function(path, success, error) { return this.request( { type: "GET", path: path, success: success, error: error } ); },
+		"post": function(path, data, success, error) { return this.request( { type: "POST", path: path, data: data, success: success, error: error } ); },
+		"put": function(path, data, success, error) { return this.request( { type: "PUT", path: path, data: data, success: success, error: error } ); },
+		"delete": function(path, data, success, error) { return this.request( { type: "DELETE", path: path, data: data, success: success, error: error } ); }
 	});
 
 })( this.jQuery, this.app );
@@ -1316,15 +1347,41 @@
 					this.fire( "data", this );
 				}
 			}
-			this.cluster.get("_cluster/state", function( data ) {
+			var _cluster = this.cluster;
+			_cluster.get("_cluster/state", function( data ) {
 				clusterState = data;
 				updateModel.call( self );
+			},function() {
+				
+				_cluster.get("_all", function( data ) {
+					clusterState = {routing_table:{indices:{}}, metadata:{indices:{}}};
+					
+					for(var k in data) {
+						clusterState["routing_table"]["indices"][k] = {"shards":{"1":[{
+                            "state":"UNASSIGNED",
+                            "primary":false,
+                            "node":"unknown",
+                            "relocating_node":null,
+                            "shard":'?',
+                            "index":k
+                        }]}};
+						
+
+						clusterState["metadata"]["indices"][k] = {};
+						clusterState["metadata"]["indices"][k]["mappings"] = data[k]["mappings"];
+						clusterState["metadata"]["indices"][k]["aliases"] = $.makeArray(Object.keys(data[k]["aliases"]));
+						clusterState["metadata"]["indices"][k]["settings"] = data[k]["settings"];
+					}
+					
+					updateModel.call( self );
+				});
+				
 			});
 			this.cluster.get("_stats", function( data ) {
 				status = data;
 				updateModel.call( self );
 			});
-			this.cluster.get("_nodes/stats?all=true", function( data ) {
+			this.cluster.get("_nodes/stats", function( data ) {
 				nodeStats = data;
 				updateModel.call( self );
 			});
@@ -3854,8 +3911,10 @@
 					}
 				}
 			}
-			for(var type in data[this.config.index].mappings) {
-				scan_properties([type], data[this.config.index].mappings[type]);
+			if (data[this.config.index]){
+				for(var type in data[this.config.index].mappings) {
+					scan_properties([type], data[this.config.index].mappings[type]);
+				}
 			}
 
 			filters.sort( function(a, b) {
@@ -3937,7 +3996,7 @@
 			if(spec.type === 'match_all') {
 			} else if(spec.type === '_all') {
 				ops = ["query_string"];
-			} else if(spec.type === 'string') {
+			} else if(spec.type === 'string' || spec.type === 'text' || spec.type === 'keyword') {
 				ops = ["term", "wildcard", "prefix", "fuzzy", "range", "query_string", "text", "missing"];
 			} else if(spec.type === 'long' || spec.type === 'integer' || spec.type === 'float' ||
 					spec.type === 'byte' || spec.type === 'short' || spec.type === 'double') {

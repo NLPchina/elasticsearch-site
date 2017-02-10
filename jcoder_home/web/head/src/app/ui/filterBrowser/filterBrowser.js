@@ -40,8 +40,10 @@
 					}
 				}
 			}
-			for(var type in data[this.config.index].mappings) {
-				scan_properties([type], data[this.config.index].mappings[type]);
+			if (data[this.config.index]){
+				for(var type in data[this.config.index].mappings) {
+					scan_properties([type], data[this.config.index].mappings[type]);
+				}
 			}
 
 			filters.sort( function(a, b) {
@@ -123,7 +125,7 @@
 			if(spec.type === 'match_all') {
 			} else if(spec.type === '_all') {
 				ops = ["query_string"];
-			} else if(spec.type === 'string') {
+			} else if(spec.type === 'string' || spec.type === 'text' || spec.type === 'keyword') {
 				ops = ["term", "wildcard", "prefix", "fuzzy", "range", "query_string", "text", "missing"];
 			} else if(spec.type === 'long' || spec.type === 'integer' || spec.type === 'float' ||
 					spec.type === 'byte' || spec.type === 'short' || spec.type === 'double') {
