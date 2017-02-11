@@ -233,10 +233,7 @@ function updateWithScrollIfNeeded (query) {
 		saveUrl()
 
         var query = window.editor.getValue();
-		
-		//Edite here
-		//$http.post($scope.url + "_sql/_explain", query)
-	    $http.post($scope.url + "api/SqlApi/explain?sql="+encodeURIComponent(query))
+		$http.post($scope.url + "_sql/_explain", query)
 		.success(function(data, status, headers, config) {
 					 $scope.resultExplan = true;
 				   window.explanResult.setValue(JSON.stringify(data, null, "\t"));
