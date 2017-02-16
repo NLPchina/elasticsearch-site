@@ -13,6 +13,7 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
@@ -40,7 +41,7 @@ public class ESClient {
 		job.put("message", "trying out Elastic     Search");
 
 		IndexResponse response = esClient.client.prepareIndex("twitter", "tweet", "1").setSource(job.toJSONString()).execute().actionGet();
-		
+
 		System.out.println(response);
 
 		esClient.destroy();
@@ -48,9 +49,23 @@ public class ESClient {
 	}
 
 	public ESClient(String... clusterNodes) {
+		init(false, null, clusterNodes);
+	}
+
+	public ESClient(boolean securityOpen, String security, String... clusterNodes) {
+		init(securityOpen, security, clusterNodes);
+	}
+
+	private void init(boolean securityOpen, String security, String... clusterNodes) {
 		try {
 
-			Settings settings = Settings.builder().put("client.transport.ignore_cluster_name", true).build();
+			Builder builder = Settings.builder().put("client.transport.sniff", true);
+
+			if (securityOpen) {
+				builder.put("xpack.security.user", security);
+			}
+
+			Settings settings = builder.put("client.transport.ignore_cluster_name", true).build();
 
 			client = new PreBuiltTransportClient(settings);
 
