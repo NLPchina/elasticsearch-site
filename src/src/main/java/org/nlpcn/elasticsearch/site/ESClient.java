@@ -16,6 +16,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class ESClient {
 	private final static String COLON = ":";
 
 	public static void main(String[] args) {
-		ESClient esClient = new ESClient("127.0.0.1" + "" + "" + ":9300");
+		ESClient esClient = new ESClient(true, "elastic:changeme", "127.0.0.1" + "" + "" + ":9300");
 
 		System.out.println(esClient);
 
@@ -40,7 +41,7 @@ public class ESClient {
 		job.put("postDate", new Date());
 		job.put("message", "trying out Elastic     Search");
 
-		IndexResponse response = esClient.client.prepareIndex("twitter", "tweet", "1").setSource(job.toJSONString()).execute().actionGet();
+		IndexResponse response = esClient.client.prepareIndex("twitter", "tweet", "20").setSource(job.toJSONString()).execute().actionGet();
 
 		System.out.println(response);
 
@@ -67,7 +68,11 @@ public class ESClient {
 
 			Settings settings = builder.put("client.transport.ignore_cluster_name", true).build();
 
-			client = new PreBuiltTransportClient(settings);
+			if (securityOpen) {
+				client = new PreBuiltXPackTransportClient(settings);
+			} else {
+				client = new PreBuiltTransportClient(settings);
+			}
 
 			for (String clusterNode : clusterNodes) {
 				String hostName = substringBefore(clusterNode, COLON);
