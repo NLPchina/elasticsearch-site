@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.nlpcn</groupId>
     <artifactId>elasticsearch-site</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
 
     <repositories>
         <repository>
             <id>mvn-aliyun</id>
             <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-        </repository> 
+        </repository>
         <repository>
             <id>elasticsearch-releases</id>
             <url>https://artifacts.elastic.co/maven</url>
@@ -22,22 +22,23 @@
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>transport</artifactId>
-            <version>5.2.0</version>
+            <version>6.1.1</version>
         </dependency>
-      
+
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>x-pack-transport</artifactId>
-            <version>5.2.0</version>
+            <version>6.1.1</version>
         </dependency> 
-      
+
         <dependency>
             <groupId>org.nlpcn</groupId>
             <artifactId>elasticsearch-sql</artifactId>
-            <version>5.1.2.0</version>
+            <version>6.1.1.5</version>
         </dependency>
 
         <dependency>

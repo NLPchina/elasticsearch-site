@@ -1213,14 +1213,12 @@
 			var clause = {}, query = {};
 			if(op === "match_all") {
 			} else if(op === "query_string") {
-				query["default_field"] = field;
+				query["default_field"] = field.substring(field.indexOf(".")+1);
 				query["query"] = value;
 			} else if(op === "missing") {
-				op = "constant_score"
-				var missing = {}, filter = {};
-				missing["field"] = field;
-				filter["missing"] = missing
-				query["filter"] = filter;
+				op = "exists";
+				bool = "must_not";
+				query["field"] = field.substring(field.indexOf(".")+1);
 			} else {
 				query[field.substring(field.indexOf(".")+1)] = value;
 			}
@@ -1302,6 +1300,7 @@
 		request: function( params ) {
 			return $.ajax( $.extend({
 				url: this.base_uri + params.path,
+				contentType: "application/json",
 				dataType: "json",
 				error: function(xhr, type, message) {
 					if("console" in window) {
@@ -1452,7 +1451,7 @@
 		},
 
 		remove: function() {
-			this.el.remove();
+			if ( this.el !== null ) { this.el.remove(); }
 			this.fire("removed", this );
 			this.removeAllObservers();
 			this.el = null;
@@ -2889,6 +2888,7 @@
 					.children().find(":last-child").each(function(i, j) { j.scrollIntoView(false); }).end()
 					.scrollLeft(0);
 			}
+			if (type === 'GET') { query = null; }
 			this.config.cluster.request({
 				url: base_uri + path,
 				type: type,
@@ -3124,6 +3124,28 @@
 				}.bind(this)
 			}).open();
 		},
+		_forceMergeIndex_handler: function(index) {
+                        var fields = new app.ux.FieldCollection({
+                                fields: [
+                                        new ui.TextField({ label: i18n.text("ForceMergeForm.MaxSegments"), name: "max_num_segments", value: "1", require: true }),
+                                        new ui.CheckField({ label: i18n.text("ForceMergeForm.ExpungeDeletes"), name: "only_expunge_deletes", value: false }),
+                                        new ui.CheckField({ label: i18n.text("ForceMergeForm.FlushAfter"), name: "flush", value: true })
+                                ]
+                        });
+                        var dialog = new ui.DialogPanel({
+                                title: i18n.text("ForceMergeForm.ForceMergeIndex", index.name),
+                                body: new ui.PanelForm({ fields: fields }),
+                                onCommit: function( panel, args ) {
+                                        if(fields.validate()) {
+
+                                                this.cluster.post(encodeURIComponent( index.name ) + "/_forcemerge?"+jQuery.param(fields.getData()), null, function(r) {
+                                                        alert(JSON.stringify(r));
+                                                });
+                                                dialog.close();
+                                        }
+                                }.bind(this)
+                        }).open();
+		},
 		_testAnalyser_handler: function(index) {
 			this.cluster.get(encodeURIComponent( index.name ) + "/_analyze?text=" + encodeURIComponent( prompt( i18n.text("IndexCommand.TextToAnalyze") ) ), function(r) {
 				alert(JSON.stringify(r, true, "  "));
@@ -3251,7 +3273,7 @@
 							{ text: i18n.text("IndexActionsMenu.NewAlias"), onclick: function() { this._newAliasAction_handler(index); }.bind(this) },
 							{ text: i18n.text("IndexActionsMenu.Refresh"), onclick: function() { this._postIndexAction_handler("_refresh", index, false); }.bind(this) },
 							{ text: i18n.text("IndexActionsMenu.Flush"), onclick: function() { this._postIndexAction_handler("_flush", index, false); }.bind(this) },
-							{ text: i18n.text("IndexActionsMenu.Optimize"), onclick: function () { this._optimizeIndex_handler(index); }.bind(this) },
+							{ text: this.cluster.versionAtLeast("5.0.0.") ? i18n.text("IndexActionsMenu.ForceMerge") : i18n.text("IndexActionsMenu.Optimize"), onclick: this.cluster.versionAtLeast("5.0.0.") ? function () { this._forceMergeIndex_handler(index); }.bind(this) : function () { this._optimizeIndex_handler(index); }.bind(this) },
 							{ text: i18n.text("IndexActionsMenu.Snapshot"), disabled: closed, onclick: function() { this._postIndexAction_handler("_gateway/snapshot", index, false); }.bind(this) },
 							{ text: i18n.text("IndexActionsMenu.Analyser"), onclick: function() { this._testAnalyser_handler(index); }.bind(this) },
 							{ text: (index.state === "close") ? i18n.text("IndexActionsMenu.Open") : i18n.text("IndexActionsMenu.Close"), onclick: function() { this._postIndexAction_handler((index.state === "close") ? "_open" : "_close", index, true); }.bind(this) },
@@ -3563,7 +3585,9 @@
 				node.data_node = !( cluster && cluster.attributes && cluster.attributes.data === "false" );
 				for(var i = 0; i < indices.length; i++) {
 					node.routings[i] = node.routings[i] || { name: indices[i].name, replicas: [] };
-					node.routings[i].max_number_of_shards = indices[i].metadata.settings["index.number_of_shards"];
+					if (indices[i].metadata.settings) {
+						node.routings[i].max_number_of_shards = indices[i].metadata.settings["index.number_of_shards"];
+					}
 					node.routings[i].open = indices[i].state === "open";
 				}
 			});
@@ -3749,6 +3773,8 @@
 		_node_handler: function(data) {
 			if(data) {
 				this.prefs.set("app-base_uri", this.cluster.base_uri);
+				if(data.version && data.version.number)
+					this.cluster.setVersion(data.version.number);
 			}
 		},
 		

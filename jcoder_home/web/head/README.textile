@@ -13,7 +13,7 @@ h4. Running with built in server
 * @git clone git://github.com/mobz/elasticsearch-head.git@
 * @cd elasticsearch-head@
 * @npm install@
-* @grunt server@
+* @npm run start@
 
 * @open@ "http://localhost:9100/":http://localhost:9100/
 
@@ -28,6 +28,11 @@ h4. Running with docker
   
 * @open@ "http://localhost:9100/":http://localhost:9100/
 
+h4. Running as a Chrome extension
+
+* Install "ElasticSearch Head":https://chrome.google.com/webstore/detail/elasticsearch-head/ffmkiejjmecolpfloofpjologoblkegm/ from the Chrome Web Store.
+* Click the extension icon in the toolbar of your web browser.
+
 h4. Running as a plugin of Elasticsearch (deprecated)
 
 * for Elasticsearch 5.x: site plugins are not supported. Run "as a standalone server":#running-with-built-in-server
@@ -38,6 +43,18 @@ h4. Running as a plugin of Elasticsearch (deprecated)
 * @open http://localhost:9200/_plugin/head/@
 
 This will automatically download the appropriate version of elasticsearch-head from github and run it as a plugin within the elasticsearch cluster. In this mode elasticsearch-head automatically connects to the node that is running it
+
+h4. Running with the local proxy
+
+This is an _experimental feature_ which creates a local proxy for many remote elasticsearch clusters
+
+* configure clusters in proxy/clusters
+* create a file per remote cluster you want to connect to ( see @localhost9200.json@ as example )
+* requires node >= 6.0 
+* @npm install@
+* @npm run proxy@
+
+At the moment it only works with @grunt server@ running on http://localhost:9100
 
 h4. Alternatives
 
