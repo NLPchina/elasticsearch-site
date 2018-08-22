@@ -25,7 +25,7 @@ public class SqlApi {
 	@Execute
 	public Object execute(String sql) throws SQLFeatureNotSupportedException, SqlParseException {
 		ActionResponse rep = new SearchDao(esClient.getClient()).explain(sql).explain().get();
-		return JSONObject.parseObject(rep.toString());
+		return rep != null ? JSONObject.parseObject(rep.toString()) : null;
 	}
 
 	@Execute
@@ -36,6 +36,6 @@ public class SqlApi {
 	@Execute
 	public Object scroll(@Param(value = "scroll", df = "1m") String scroll, @Param("scrollId") String scrollId) {
 		SearchResponse rep = esClient.getClient().prepareSearchScroll(scrollId).setScroll(scroll).get();
-		return JSONObject.parseObject(rep.toString());
+		return rep != null ? JSONObject.parseObject(rep.toString()) : null;
 	}
 }
